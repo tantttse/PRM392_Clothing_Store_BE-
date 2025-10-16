@@ -1,5 +1,6 @@
 
 using Infrastructure;
+using Shared.Infrastructure.Configs.Swagger;
 
 namespace ClothingStore.BE.API
 {
@@ -16,17 +17,22 @@ namespace ClothingStore.BE.API
             builder.Services.AddControllers();
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
             builder.Services.AddOpenApi();
-
+            builder.Services.AddEndpointsApiExplorer();
+            builder.Services.AddSwaggerGen();
+            builder.Services.ConfigureOptions<SwaggerConfigSetup>();
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
                 app.MapOpenApi();
+                app.UseSwagger();
+                app.UseSwaggerUI(SwaggerUIConfig.ConfigureSwaggerUI);
             }
             //app.UseHttpsRedirection();
 
             app.UseAuthorization();
+            app.UseAuthentication();
 
 
             app.MapControllers();

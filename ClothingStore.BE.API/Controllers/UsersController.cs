@@ -11,6 +11,8 @@ using Shared.Application.Abstractions.Adapters;
 using Shared.Application.Abstractions.Authentication;
 using Shared.Presentation.Common;
 using Shared.Application.Common.Commands;
+using Microsoft.AspNetCore.Identity.Data;
+using ClothingStore.Application.Features.User.Dtos;
 
 namespace ClothingStore.API.Controllers
 {
@@ -23,9 +25,9 @@ namespace ClothingStore.API.Controllers
 
         [HttpPost("register")]
         // [AllowAnonymous]
-        public async Task<IActionResult> Register([FromBody] RegisterUserCommand request, CancellationToken cancellationToken)
+        public async Task<IActionResult> Register([FromBody] RegisterRequestDto request, CancellationToken cancellationToken)
         {
-            var result = await _mediator.Send(request, cancellationToken);
+            var result = await _mediator.Send(new RegisterUserCommand(request), cancellationToken);
             if (result.IsFailure)
             {
                 return HandleFailure(result);
@@ -42,9 +44,9 @@ namespace ClothingStore.API.Controllers
 
         [HttpPost("login")]
         // [AllowAnonymous]
-        public async Task<IActionResult> Login([FromBody] LoginUserCommand command, CancellationToken cancellationToken)
+        public async Task<IActionResult> Login([FromBody] LoginRequestDto request, CancellationToken cancellationToken)
         {
-            var result = await _mediator.Send(command, cancellationToken);
+            var result = await _mediator.Send(new LoginUserCommand(request), cancellationToken);
             if (result.IsFailure)
             {
                 return HandleFailure(result);
