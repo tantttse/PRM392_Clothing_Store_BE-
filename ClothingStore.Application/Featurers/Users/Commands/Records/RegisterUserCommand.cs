@@ -10,6 +10,6 @@ namespace ClothingStore.Application.Features.User.Commands.RegisterUser
     //     string Password
     // ) : IRequest<UserResponse>;
 
-    public record RegisterUserCommand(string Email, string UserName, string Password) : ICommand<UserResponse>;
+    public record RegisterUserCommand(RegisterRequestDto RegisterRequest) : ICommand<UserResponseDto>;
 
 }

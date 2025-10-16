@@ -8,7 +8,7 @@ using Shared.Domain.Common.ResponseModel;
 namespace ClothingStore.Application.Features.User.Queries
 {
     public class GetUserByIdQueryHandler 
-    : IQueryHandler<GetUserByIdQuery, UserResponse>
+    : IQueryHandler<GetUserByIdQuery, UserResponseDto>
 {
     private readonly IUserRepository _userRepository;
     private readonly IMapper _mapper;
@@ -19,13 +19,13 @@ namespace ClothingStore.Application.Features.User.Queries
         _mapper = mapper;
     }
 
-    public async Task<Result<UserResponse>> Handle(GetUserByIdQuery request, CancellationToken cancellationToken)
+    public async Task<Result<UserResponseDto>> Handle(GetUserByIdQuery request, CancellationToken cancellationToken)
     {
         var user = await _userRepository.GetByIdAsync(request.Id, cancellationToken);
         if (user is null)
-            return Result.Failure<UserResponse>(new Error("UserNotFound", "User not found"));
+            return Result.Failure<UserResponseDto>(new Error("UserNotFound", "User not found"));
 
-        return Result.Success(_mapper.Map<UserResponse>(user));
+        return Result.Success(_mapper.Map<UserResponseDto>(user));
     }
 }
 }

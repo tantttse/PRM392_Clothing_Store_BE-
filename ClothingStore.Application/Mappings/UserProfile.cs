@@ -8,7 +8,7 @@ namespace ClothingStore.Application.Mappings
     {
         public UserProfile()
         {
-            CreateMap<Users, UserResponse>();
+            CreateMap<Users, UserResponseDto>();
         }
     }
 }

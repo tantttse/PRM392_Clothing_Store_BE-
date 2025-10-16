@@ -3,14 +3,14 @@ namespace Shared.Application.Abstractions.DTOs;
 // Deprecated: use Application.Users.Commands.LoginUserCommand directly
 // public record LoginRequest(string Email, string Password);
 
-public record LoginResponse(
+public record LoginResponseDto(
     string AccessToken, 
     string RefreshToken, 
     DateTime ExpiresAt, 
-    UserInfo User
+    UserInfoDto User
 );
 
-public record UserInfo(
+public record UserInfoDto   (
     Guid UserId,
     string Name,
     string UserName,

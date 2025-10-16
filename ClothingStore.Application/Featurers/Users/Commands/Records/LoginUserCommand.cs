@@ -4,5 +4,5 @@ using Shared.Application.Abstractions.Messaging;
 
 namespace ClothingStore.Application.Features.User.Commands.Login
 {
-    public record LoginUserCommand(string EmailOrUserName, string Password) : ICommand<LoginResponse>;
+    public record LoginUserCommand(LoginRequestDto LoginRequest) : ICommand<LoginResponseDto>;
 }
