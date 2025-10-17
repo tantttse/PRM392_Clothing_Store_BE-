@@ -1,0 +1,56 @@
+using Shared.Domain.Common.DDD;
+
+namespace ClothingStore.Domain.Entities
+{
+    public class Product : AggregateRoot<Guid>
+    {
+        public string ProductName { get; private set; } = default!;
+        public string? BriefDescription { get; private set; }
+        public string? FullDescription { get; private set; }
+        public string? TechnicalSpecifications { get; private set; }
+        public decimal Price { get; private set; }
+        public string? ImageUrl { get; private set; }
+
+        // Relationships
+        public Guid CategoryId { get; private set; }
+        public Category Category { get; private set; } = default!;
+
+        private Product() { }
+
+        public static Product Create(string name, decimal price, Guid categoryId)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+                throw new ArgumentException("Product name cannot be empty.");
+            if (price <= 0)
+                throw new ArgumentException("Price must be greater than zero.");
+
+            return new Product
+            {
+                ProductName = name,
+                Price = price,
+                CategoryId = categoryId,
+            };
+        }
+
+        public void UpdateDetails(string? brief, string? full, string? specs, string? imageUrl)
+        {
+            BriefDescription = brief;
+            FullDescription = full;
+            TechnicalSpecifications = specs;
+            ImageUrl = imageUrl;
+            ModifiedAt = DateTime.UtcNow;
+        }
+
+        public void ChangePrice(decimal newPrice)
+        {
+            if (newPrice <= 0) throw new ArgumentException("Price must be greater than zero.");
+            Price = newPrice;
+            ModifiedAt = DateTime.UtcNow;
+        }
+
+        protected override void Apply(IDomainEvent @event)
+        {
+            // No domain events yet
+        }
+    }
+}

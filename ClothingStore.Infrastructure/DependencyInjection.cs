@@ -6,19 +6,18 @@ using ClothingStore.Infrastructure.Persistence.Contexts;
 using ClothingStore.Infrastructure.Repositories;
 using Infrastructure.Authentication;
 using Infrastructure.Data.Interceptors;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
-using Microsoft.EntityFrameworkCore.Diagnostics.Internal;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Shared.Application.Abstractions.Authentication;
 using Shared.Application.Abstractions.UnitOfWork;
 using Shared.Authentication;
 using Shared.Infrastructure.Authentication;
 using Shared.Infrastructure.Common;
 using Shared.Infrastructure.Configs.Security;
-using Shared.Infrastructure.Extensions;
+// using SharedLibrary.Utils;
 
 namespace Infrastructure
 {
@@ -50,7 +49,12 @@ namespace Infrastructure
             services.AddScoped<ICompositeUnitOfWork, CompositeUnitOfWork>();
             services.AddHttpContextAccessor();
             services.AddScoped<ICurrentUserService, CurrentUserService>();
+            // var provider = services.BuildServiceProvider().GetRequiredService<ILoggerFactory>();
+            // var logger = provider.CreateLogger<AutoMigration>();
 
+            // var migrator = new AutoMigration(logger);
+            // migrator.GenerateMigration();
+            // migrator.ApplyMigration();
             return services;
         }
     }

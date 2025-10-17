@@ -15,11 +15,13 @@ namespace Infrastructure
             var assembly = typeof(DependencyInjection).Assembly;
             var sharedLibraryAssembly = typeof(SaveChangesCommandHandler).Assembly;
 
-            services.AddMediatR(configuration => 
+            services.AddMediatR(configuration =>
             {
                 configuration.RegisterServicesFromAssembly(assembly);
                 configuration.RegisterServicesFromAssembly(sharedLibraryAssembly);
             });
+            services.AddValidatorsFromAssembly(assembly);
+
             services.AddScoped(typeof(IPipelineBehavior<,>), typeof(ValidationPipelineBehavior<,>));
 
             return services;

@@ -1,6 +1,7 @@
 
 using Infrastructure;
 using Shared.Infrastructure.Configs.Swagger;
+// using SharedLibrary.Utils;
 
 namespace ClothingStore.BE.API
 {
@@ -22,6 +23,22 @@ namespace ClothingStore.BE.API
             builder.Services.ConfigureOptions<SwaggerConfigSetup>();
             var app = builder.Build();
 
+            // using (var scope = app.Services.CreateScope())
+            // {
+            //     var migrator = scope.ServiceProvider.GetRequiredService<AutoMigration>();
+
+            //     if (app.Environment.IsDevelopment())
+            //     {
+            //         // In dev: generate a new migration and apply it
+            //         migrator.GenerateMigration();
+            //         migrator.ApplyMigration();
+            //     }
+            //     else
+            //     {
+            //         // In prod: only apply existing migrations
+            //         migrator.ApplyMigration();
+            //     }
+            // }
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {

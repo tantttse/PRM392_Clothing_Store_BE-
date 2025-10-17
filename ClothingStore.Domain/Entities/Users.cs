@@ -15,22 +15,25 @@ namespace ClothingStore.Domain.Entities
         public string? PhoneNumber { get; private set; }
         public string? Address { get; private set; }
 
+        public string? ProfileImageUrl { get; private set; }
+        public string? RefreshToken { get; private set; }
+        public DateTime? RefreshTokenExpiry { get; private set; }
         public ICollection<RoleType> Roles { get; private set; } = new List<RoleType>();
-        
+        public virtual ICollection<Cart> Carts { get; private set; } = new List<Cart>();
 
         // EF Core constructor
         private Users() { }
 
-        // Factory method
-        public static Users Create(string? email, string userName, string passwordHash)
+        public static Users Create(string? email, string userName, string passwordHash, string? profileImageUrl = null, RoleType role = RoleType.Customer)
         {
             var user = new Users
             {
                 Email = EmailVal.From(email!).Value,
                 UserName = userName,
                 PasswordHash = passwordHash,
+                ProfileImageUrl = profileImageUrl,
                 IsActive = true,
-                Roles = new List<RoleType> { RoleType.Customer , RoleType.Guest }
+                Roles = new List<RoleType> { role }
             };
 
             // Domain event disabled for now
@@ -43,31 +46,51 @@ namespace ClothingStore.Domain.Entities
         public void ChangeEmail(string newEmail)
         {
             Email = newEmail;
-            ModifiedAt = DateTime.UtcNow;
             // RaiseEvent(new UserEmailChangedEvent(Id, newEmail));
         }
 
         public void ChangePassword(string newPasswordHash)
         {
             PasswordHash = newPasswordHash;
-            ModifiedAt = DateTime.UtcNow;
             // RaiseEvent(new UserPasswordChangedEvent(Id));
         }
 
-        public void UpdateProfile(string? firstName, string? lastName, string? phone, string? address)
+        public void UpdateProfile(string? firstName, string? lastName, string? phone, string? address, string? profileImageUrl)
         {
             FirstName = firstName;
             LastName = lastName;
             PhoneNumber = phone;
             Address = address;
-            ModifiedAt = DateTime.UtcNow;
+            ProfileImageUrl = profileImageUrl;
+
         }
 
         public void DeactivateUser()
         {
             IsActive = false;
-            ModifiedAt = DateTime.UtcNow;
             // RaiseEvent(new UserDeactivatedEvent(Id));
+        }
+
+        public void AssignRole(RoleType role)
+        {
+            if (!Roles.Contains(role))
+                Roles.Add(role);
+        }
+
+        public void RemoveRole(RoleType role)
+        {
+            if (Roles.Contains(role))
+                Roles.Remove(role);
+        }
+
+        public Cart CreateNewCart()
+        {
+            if (Carts.Any(c => c.Status == "Active"))
+                throw new InvalidOperationException("User already has an active cart.");
+
+            var cart = Cart.Create(Id);
+            Carts.Add(cart);
+            return cart;
         }
 
         // Apply domain events (disabled for now)
