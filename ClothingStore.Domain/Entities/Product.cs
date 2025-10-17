@@ -17,7 +17,7 @@ namespace ClothingStore.Domain.Entities
 
         private Product() { }
 
-        public static Product Create(string name, decimal price, Guid categoryId)
+        public static Product Create(string name, string? brief, string? full, string? specs, string? imageUrl, decimal price, Guid categoryId)
         {
             if (string.IsNullOrWhiteSpace(name))
                 throw new ArgumentException("Product name cannot be empty.");
@@ -27,17 +27,24 @@ namespace ClothingStore.Domain.Entities
             return new Product
             {
                 ProductName = name,
+                BriefDescription = brief,
+                FullDescription = full,
+                TechnicalSpecifications = specs,
+                ImageUrl = imageUrl,
                 Price = price,
                 CategoryId = categoryId,
             };
         }
 
-        public void UpdateDetails(string? brief, string? full, string? specs, string? imageUrl)
+        public void UpdateDetails(string name ,string? brief, string? full, string? specs, string? imageUrl ,decimal price, Guid? categoryId)
         {
-            BriefDescription = brief;
-            FullDescription = full;
-            TechnicalSpecifications = specs;
-            ImageUrl = imageUrl;
+            ProductName = name ?? ProductName;
+            BriefDescription = brief ?? BriefDescription;
+            FullDescription = full ?? FullDescription;
+            TechnicalSpecifications = specs ?? TechnicalSpecifications;
+            ImageUrl = imageUrl ?? ImageUrl;
+            Price = price > 0 ? price : Price;
+            CategoryId = categoryId ?? CategoryId;
             ModifiedAt = DateTime.UtcNow;
         }
 

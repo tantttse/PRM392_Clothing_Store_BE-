@@ -22,15 +22,24 @@ namespace ClothingStore.Infrastructure.Persistence.Configurations
                    .HasMaxLength(150)
                    .IsRequired();
 
-            builder.Property(c => c.CreatedAt)
-                   .HasColumnName("created_at");
+            builder.Property(u => u.CreatedAt)
+                    .HasColumnName("created_at")
+                    .HasColumnType("timestamp with time zone")
+                    .HasDefaultValueSql("NOW()");
 
-            builder.Property(c => c.ModifiedAt)
-                   .HasColumnName("modified_at");
+            builder.Property(u => u.CreatedBy)
+                   .HasColumnName("created_by")
+                   .HasMaxLength(100);
 
-            builder.Property(c => c.IsActive)
+            builder.Property(u => u.ModifiedAt)
+                   .HasColumnName("modified_at")
+                   .HasColumnType("timestamp with time zone");
+
+            builder.Property(u => u.ModifiedBy)
+                   .HasColumnName("modified_by")
+                   .HasMaxLength(100);
+            builder.Property(p => p.IsActive)
                    .HasColumnName("is_active");
-
             // Relationships
             builder.HasMany(c => c.Products)
                    .WithOne(p => p.Category)

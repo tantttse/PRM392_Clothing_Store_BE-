@@ -44,6 +44,7 @@ namespace Infrastructure
             services.AddScoped<IPasswordHasher, PasswordHasher>();
             services.AddScoped<IUserUnitOfWork, UserUnitOfWork>();
             services.AddScoped<IUserRepository, UserRepository>();
+            services.AddScoped<IProductRepository, ProductRepository>();
             services.AddScoped<ISaveChangesUnitOfWork, UserUnitOfWork>();
             services.AddAutoMapper(typeof(ClothingStore.Application.Mappings.UserProfile).Assembly);
             services.AddScoped<ICompositeUnitOfWork, CompositeUnitOfWork>();
