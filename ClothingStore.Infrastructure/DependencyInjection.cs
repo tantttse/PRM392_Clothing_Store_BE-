@@ -17,6 +17,7 @@ using Shared.Authentication;
 using Shared.Infrastructure.Authentication;
 using Shared.Infrastructure.Common;
 using Shared.Infrastructure.Configs.Security;
+using Shared.Infrastructure.Data.Interceptors;
 // using SharedLibrary.Utils;
 
 namespace Infrastructure
@@ -45,7 +46,11 @@ namespace Infrastructure
             services.AddScoped<IUserUnitOfWork, UserUnitOfWork>();
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IProductRepository, ProductRepository>();
+            services.AddScoped<ICategoryRepository, CategoryRepository>();
+            services.AddScoped<ICartRepository, CartRepository>();
+            services.AddScoped<IOrderRepository, OrderRepository>();
             services.AddScoped<ISaveChangesUnitOfWork, UserUnitOfWork>();
+            services.AddScoped<ISaveChangesInterceptor, DispatchDomainEventInterceptor>();
             services.AddAutoMapper(typeof(ClothingStore.Application.Mappings.UserProfile).Assembly);
             services.AddScoped<ICompositeUnitOfWork, CompositeUnitOfWork>();
             services.AddHttpContextAccessor();

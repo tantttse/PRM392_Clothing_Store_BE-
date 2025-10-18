@@ -2,18 +2,16 @@ using System.Linq.Expressions;
 using AutoMapper;
 using ClothingStore.Application.Features.Products.Dtos;
 using ClothingStore.Application.Features.Products.Queries;
-using ClothingStore.Application.Features.User.Dtos;
 using ClothingStore.Domain.Entities;
 using ClothingStore.Domain.Repositories;
-using MediatR;
 using Shared.Application.Abstractions.Messaging;
 using Shared.Domain.Common.ResponseModel;
 using Shared.Helpers;
 
-namespace ClothingStore.Application.Features.User.Queries
+namespace ClothingStore.Application.Features.Products.Queries
 {
     public class GetProductListQueryHandler
-    : IQueryHandler<GetProductListQuery, IEnumerable<ProductDto>>
+        : IQueryHandler<GetProductListQuery, IEnumerable<ProductDto>>
     {
         private readonly IProductRepository _productRepository;
         private readonly IMapper _mapper;
@@ -26,44 +24,42 @@ namespace ClothingStore.Application.Features.User.Queries
 
         public async Task<Result<IEnumerable<ProductDto>>> Handle(GetProductListQuery request, CancellationToken cancellationToken)
         {
-            var pageIndex = request.Filter.PageIndex;
-            var pageSize = request.Filter.PageSize;
-            var orderByColumn = ExpressionBuilder.BuildOrderByExpression<Product>(request.Filter.OrderBy ?? "created_at");
-            var isAscending = request.Filter.IsAscending;
-            var categoryId = request.Filter.CategoryId;
-            var minPrice = request.Filter.MinPrice;
-            var maxPrice = request.Filter.MaxPrice;
-            var searchTerm = request.Filter.SearchTerm;
+            var filter = request.Filter;
+            var pageIndex = filter.PageIndex;
+            var pageSize = filter.PageSize;
+            var orderByColumn = ExpressionBuilder.BuildOrderByExpression<Product>(filter.OrderBy ?? "created_at");
+            var isAscending = filter.IsAscending;
+
             Expression<Func<Product, bool>> predicate = e => true;
 
-            if (categoryId.HasValue)
+            if (filter.CategoryId.HasValue)
+                predicate = predicate.And(e => e.CategoryId == filter.CategoryId.Value);
+
+            if (filter.MinPrice.HasValue)
+                predicate = predicate.And(e => e.Price >= filter.MinPrice.Value);
+
+            if (filter.MaxPrice.HasValue)
+                predicate = predicate.And(e => e.Price <= filter.MaxPrice.Value);
+
+            if (!string.IsNullOrEmpty(filter.SearchTerm))
             {
-                predicate = predicate.And(e => e.CategoryId == categoryId.Value);
+                var term = filter.SearchTerm;
+                predicate = predicate.And(e =>
+                    e.ProductName.Contains(term) ||
+                    (e.BriefDescription != null && e.BriefDescription.Contains(term)) ||
+                    (e.FullDescription != null && e.FullDescription.Contains(term)) ||
+                    (e.TechnicalSpecifications != null && e.TechnicalSpecifications.Contains(term)) ||
+                    (e.Category != null && e.Category.CategoryName.Contains(term))
+                );
             }
-            if (minPrice.HasValue)
-            {
-                predicate = predicate.And(e => e.Price >= minPrice.Value);
-            }
-            if (maxPrice.HasValue)
-            {
-                predicate = predicate.And(e => e.Price <= maxPrice.Value);
-            }
-            if (!string.IsNullOrEmpty(searchTerm))
-            {
-                predicate = predicate.And(e => e.ProductName.Contains(searchTerm) ||
-                                               (e.BriefDescription != null && e.BriefDescription.Contains(searchTerm)) ||
-                                               (e.FullDescription != null && e.FullDescription.Contains(searchTerm)) ||
-                                               (e.TechnicalSpecifications != null && e.TechnicalSpecifications.Contains(searchTerm)) ||
-                                               (e.Category != null && e.Category.CategoryName.Contains(searchTerm))
-                                               );
-            }
+
             var (items, totalCount) = await _productRepository.GetPagedAsync(
-            pageIndex,
-            pageSize,
-            predicate,
-            orderByColumn,
-            isAscending,
-            cancellationToken
+                pageIndex,
+                pageSize,
+                predicate,
+                orderByColumn,
+                isAscending,
+                cancellationToken
             );
 
             return Result.Success(_mapper.Map<IEnumerable<ProductDto>>(items));

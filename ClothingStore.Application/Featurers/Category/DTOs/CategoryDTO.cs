@@ -5,7 +5,7 @@ using Shared.Application.Abstractions.DTOs;
 using System.ComponentModel;
 using System.Text.Json.Serialization;
 
-namespace ClothingStore.Application.Features.Category.Dtos;
+namespace ClothingStore.Application.Features.Categories.Dtos;
 
 public class CategoryDto : BaseDto<Guid>
 {
@@ -13,13 +13,13 @@ public class CategoryDto : BaseDto<Guid>
     public List<ProductDto>? Products { get; set; }
 }
 
-public class CreateCategoryRequest
+public class CreateCategoryDto
 {
     public string CategoryName { get; set; } = default!;
 }
 
 // DTO for updating a category (API input)
-public class UpdateCategoryRequest
+public class UpdateCategoryDto
 {
     public Guid Id { get; set; } = default!;
     public string CategoryName { get; set; } = default!;

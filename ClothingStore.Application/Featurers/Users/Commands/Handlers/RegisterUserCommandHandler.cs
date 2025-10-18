@@ -2,12 +2,31 @@ using AutoMapper;
 using ClothingStore.Application.Features.User.Dtos;
 using ClothingStore.Domain.Entities;
 using ClothingStore.Domain.Repositories;
+using FluentValidation;
 using Shared.Application.Abstractions.Authentication;
 using Shared.Application.Abstractions.Messaging;
 using Shared.Domain.Common.ResponseModel;
 
 namespace ClothingStore.Application.Features.User.Commands.RegisterUser
 {
+
+    public class RegisterUserCommandValidator : AbstractValidator<RegisterUserCommand>
+    {
+        public RegisterUserCommandValidator()
+        {
+            RuleFor(x => x.RegisterRequest.Email)
+                // .NotEmpty().WithMessage("Email is required.")
+                .EmailAddress().WithMessage("Invalid email format.");
+
+            RuleFor(x => x.RegisterRequest.UserName)
+                .NotEmpty().WithMessage("Username is required.")
+                .MaximumLength(50);
+
+            RuleFor(x => x.RegisterRequest.Password)
+                .NotEmpty().WithMessage("Password is required.")
+                .MinimumLength(6).WithMessage("Password must be at least 6 characters long.");
+        }
+    }
     public class RegisterUserCommandHandler : ICommandHandler<RegisterUserCommand, UserResponseDto>
     {
         private readonly IUserRepository _userRepository;

@@ -1,4 +1,5 @@
 using ClothingStore.Domain.Repositories;
+using FluentValidation;
 using MediatR;
 using Shared.Application.Abstractions.Authentication;
 using Shared.Application.Abstractions.DTOs;
@@ -7,6 +8,20 @@ using Shared.Domain.Common.ResponseModel;
 
 namespace ClothingStore.Application.Features.User.Commands.Login
 {
+
+    public class LoginUserCommandValidator : AbstractValidator<LoginUserCommand>
+    {
+        public LoginUserCommandValidator()
+        {
+            RuleFor(x => x.LoginRequest.EmailOrUserName)
+                .NotEmpty().WithMessage("Email or username is required.")
+                .MaximumLength(100);
+
+            RuleFor(x => x.LoginRequest.Password)
+                .NotEmpty().WithMessage("Password is required.")
+                .MinimumLength(6).WithMessage("Password must be at least 6 characters long.");
+        }
+    }
     public class LoginUserCommandHandler : ICommandHandler<LoginUserCommand, LoginResponseDto>
     {
         private readonly IUserRepository _userRepository;

@@ -42,6 +42,9 @@ namespace ClothingStore.Infrastructure.Persistence.Configurations
                      builder.Property(p => p.CategoryId)
                             .HasColumnName("category_id")
                             .IsRequired();
+                     builder.Property(u => u.StockQuantity)
+                            .HasColumnName("stock_quantity")
+                            .HasColumnType("integer");
 
                      builder.Property(u => u.CreatedAt)
                             .HasColumnName("created_at")
