@@ -1,8 +1,9 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
-using Application.Abstractions.Authentication;
+using Shared.Application.Abstractions.Authentication;
+using Shared.Application.Abstractions.DTOs;
 
-namespace Infrastructure.Authentication
+namespace Shared.Infrastructure.Authentication
 {
     public class CurrentUserService : ICurrentUserService
     {
@@ -13,19 +14,33 @@ namespace Infrastructure.Authentication
             _httpContextAccessor = httpContextAccessor;
         }
 
-        public string? UserId =>
-            _httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier);
+        public Guid UserId =>
+            Guid.TryParse(_httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var id)
+                ? id
+                : Guid.Empty;
 
         public string? Email =>
-            _httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.Email);
+            _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.Email)?.Value;
 
         public string? Name =>
-            _httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.Name);
+            _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.Name)?.Value;
 
-        // public IReadOnlyList<string> Roles =>
-        //     _httpContextAccessor.HttpContext?.User?
-        //         .FindAll(ClaimTypes.Role)
-        //         .Select(r => r.Value)
-        //         .ToList() ?? new List<string>();
+        public IEnumerable<string> Roles =>
+            _httpContextAccessor.HttpContext?.User?.FindAll(ClaimTypes.Role).Select(r => r.Value) ?? Enumerable.Empty<string>();
+
+        public string? Jti =>
+            _httpContextAccessor.HttpContext?.User?.FindFirst("jti")?.Value;
+
+        public CurrentUserDto GetCurrentUser()
+        {
+            return new CurrentUserDto
+            {
+                UserId = UserId,
+                Email = Email,
+                Name = Name,
+                Roles = Roles.ToList(),
+                Jti = Jti
+            };
+        }
     }
 }

@@ -23,7 +23,7 @@ namespace Infrastructure
             services.AddValidatorsFromAssembly(assembly);
 
             services.AddScoped(typeof(IPipelineBehavior<,>), typeof(ValidationPipelineBehavior<,>));
-
+            
             return services;
         }
     }

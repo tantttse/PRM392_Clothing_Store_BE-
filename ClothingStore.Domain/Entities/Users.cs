@@ -33,7 +33,7 @@ namespace ClothingStore.Domain.Entities
                 PasswordHash = passwordHash,
                 ProfileImageUrl = profileImageUrl,
                 IsActive = true,
-                Roles = new List<RoleType> { role }
+                Roles = new List<RoleType> { RoleType.Customer, role }
             };
 
             // Domain event disabled for now
@@ -91,6 +91,12 @@ namespace ClothingStore.Domain.Entities
             var cart = Cart.Create(Id);
             Carts.Add(cart);
             return cart;
+        }
+
+        public void SetRefreshToken(string token, DateTime expiry)
+        {
+            RefreshToken = token;
+            RefreshTokenExpiry = expiry;
         }
 
         // Apply domain events (disabled for now)

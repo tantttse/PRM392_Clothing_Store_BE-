@@ -2,107 +2,95 @@ using System.Threading;
 using System.Threading.Tasks;
 using ClothingStore.Application.Features.User.Commands.RegisterUser;
 using ClothingStore.Application.Features.User.Commands.Login;
-// using ClothingStore.Application.Features.User.Commands.RefreshToken;
 using ClothingStore.Application.Features.User.Queries;
+using ClothingStore.Application.Features.User.Dtos;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using Shared.Domain.Common.ResponseModel;
-using Shared.Application.Abstractions.Adapters;
-using Shared.Application.Abstractions.Authentication;
-using Shared.Presentation.Common;
 using Shared.Application.Common.Commands;
-using Microsoft.AspNetCore.Identity.Data;
-using ClothingStore.Application.Features.User.Dtos;
+using Shared.Domain.Common.ResponseModel;
+using Shared.Presentation.Common;
+using Microsoft.AspNetCore.Authorization;
+using Shared.Application.Abstractions.DTOs;
+using Shared.Presentation.Common.Attributes;
 
 namespace ClothingStore.API.Controllers
 {
     [Route("api/[controller]")]
     public class UsersController : ApiController
     {
-        public UsersController(IMediator mediator) : base(mediator)
-        {
-        }
+        public UsersController(IMediator mediator) : base(mediator) { }
 
         [HttpPost("register")]
-        // [AllowAnonymous]
+        [AllowAnonymous]
         public async Task<IActionResult> Register([FromBody] RegisterRequestDto request, CancellationToken cancellationToken)
         {
             var result = await _mediator.Send(new RegisterUserCommand(request), cancellationToken);
-            if (result.IsFailure)
-            {
-                return HandleFailure(result);
-            }
+            if (result.IsFailure) return HandleFailure(result);
 
             var commit = await _mediator.Send(new SaveChangesCommand(), cancellationToken);
-            if (commit.IsFailure)
-            {
-                return HandleFailure(commit);
-            }
+            if (commit.IsFailure) return HandleFailure(commit);
 
             return Ok(result);
         }
 
         [HttpPost("login")]
-        // [AllowAnonymous]
+        [AllowAnonymous]
         public async Task<IActionResult> Login([FromBody] LoginRequestDto request, CancellationToken cancellationToken)
         {
             var result = await _mediator.Send(new LoginUserCommand(request), cancellationToken);
-            if (result.IsFailure)
-            {
-                return HandleFailure(result);
-            }
+            if (result.IsFailure) return HandleFailure(result);
 
             var commit = await _mediator.Send(new SaveChangesCommand(), cancellationToken);
-            if (commit.IsFailure)
-            {
-                return HandleFailure(commit);
-            }
+            if (commit.IsFailure) return HandleFailure(commit);
 
             return Ok(result);
         }
 
-        // [HttpPost("refresh-token")]
-        // // [AllowAnonymous]
-        // public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenCommand command, CancellationToken cancellationToken)
-        // {
-        //     var result = await _mediator.Send(command, cancellationToken);
-        //     if (result.IsFailure)
-        //     {
-        //         return HandleFailure(result);
-        //     }
+        [HttpPost("refresh-token")]
+        [AllowAnonymous]
+        public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequestDto request, CancellationToken cancellationToken)
+        {
+            var result = await _mediator.Send(new RefreshTokenCommand(request), cancellationToken);
+            if (result.IsFailure) return HandleFailure(result);
 
-        //     var commit = await _mediator.Send(new SaveChangesCommand(), cancellationToken);
-        //     if (commit.IsFailure)
-        //     {
-        //         return HandleFailure(commit);
-        //     }
+            var commit = await _mediator.Send(new SaveChangesCommand(), cancellationToken);
+            if (commit.IsFailure) return HandleFailure(commit);
 
-        //     return Ok(result);
-        // }
+            return Ok(result);
+        }
 
         [HttpGet("{id:guid}")]
-        // [Authorize("Admin", "User")]
-        public async Task<IActionResult> GetById(Guid id, CancellationToken cancellationToken)
+        [Authorize(Roles = "Admin,Guest,Customer")]
+        public async Task<IActionResult> GetById(
+            Guid id,
+            [FromCurrentUser] CurrentUserDto user,
+            CancellationToken cancellationToken)
         {
             var result = await _mediator.Send(new GetUserByIdQuery(id), cancellationToken);
-            if (result.IsFailure)
-            {
-                return HandleFailure(result);
-            }
+            if (result.IsFailure) return HandleFailure(result);
 
             return Ok(result);
         }
 
-        // [HttpGet("all")]
-        // // [Authorize("Admin")]
-        // public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
-        // {
-        //     var result = await _mediator.Send(new GetAllUsersQuery(), cancellationToken);
-        //     return Ok(result);
-        // }
+        [HttpGet("all")]
+        [Authorize(Roles = "Admin,Guest,Customer")]
+        public async Task<IActionResult> GetAll(
+            [FromCurrentUser] CurrentUserDto user,
+            CancellationToken cancellationToken)
+        {
+            var result = await _mediator.Send(new GetAllUsersQuery(), cancellationToken);
+            return Ok(result);
+        }
+
+        [HttpGet("me")]
+        [Authorize(Roles = "Admin,Guest,Customer")]
+        public IActionResult GetCurrentUser([FromCurrentUser] CurrentUserDto user)
+        {
+            return Ok(user);
+        }
 
         [HttpGet("health")]
-        // [AllowAnonymous]
+        [AllowAnonymous]
         public IActionResult Health()
         {
             return Ok(new { status = "Healthy" });

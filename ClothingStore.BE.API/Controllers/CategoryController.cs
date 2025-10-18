@@ -1,8 +1,8 @@
 using System.Threading;
 using System.Threading.Tasks;
-using ClothingStore.Application.Features.Products.Commands;
-using ClothingStore.Application.Features.Products.Dtos;
-using ClothingStore.Application.Features.Products.Queries;
+using ClothingStore.Application.Features.Categories.Commands;
+using ClothingStore.Application.Features.Categories.Dtos;
+using ClothingStore.Application.Features.Categories.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -15,18 +15,17 @@ using Shared.Presentation.Common.Attributes;
 namespace ClothingStore.API.Controllers
 {
     [Route("api/[controller]")]
-    public class ProductsController : ApiController
+    public class CategoriesController : ApiController
     {
-        public ProductsController(IMediator mediator) : base(mediator) { }
+        public CategoriesController(IMediator mediator) : base(mediator) { }
 
         [HttpPost]
         [Authorize(Roles = "Admin,Guest,Customer")]
         public async Task<IActionResult> Create(
             [FromCurrentUser] CurrentUserDto user,
-            [FromBody] ProductCreateCommand command,
+            [FromBody] CreateCategoryCommand command,
             CancellationToken cancellationToken)
         {
-            // Optionally attach user info to command if needed
             var result = await _mediator.Send(command, cancellationToken);
             if (result.IsFailure) return HandleFailure(result);
 
@@ -36,16 +35,13 @@ namespace ClothingStore.API.Controllers
             return Ok(result);
         }
 
-        [HttpPut("{id:guid}")]
+        [HttpPut]
         [Authorize(Roles = "Admin,Guest,Customer")]
         public async Task<IActionResult> Update(
-            Guid id,
             [FromCurrentUser] CurrentUserDto user,
-            [FromBody] ProductUpdateCommand command,
+            [FromBody] UpdateCategoryCommand command,
             CancellationToken cancellationToken)
         {
-            command = command with { Id = id };
-
             var result = await _mediator.Send(command, cancellationToken);
             if (result.IsFailure) return HandleFailure(result);
 
@@ -62,7 +58,7 @@ namespace ClothingStore.API.Controllers
             [FromCurrentUser] CurrentUserDto user,
             CancellationToken cancellationToken)
         {
-            var result = await _mediator.Send(new ProductDeleteCommand(id), cancellationToken);
+            var result = await _mediator.Send(new DeleteCategoryCommand(id), cancellationToken);
             if (result.IsFailure) return HandleFailure(result);
 
             var commit = await _mediator.Send(new SaveChangesCommand(), cancellationToken);
@@ -75,19 +71,17 @@ namespace ClothingStore.API.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> GetById(Guid id, CancellationToken cancellationToken)
         {
-            var result = await _mediator.Send(new GetProductByIdQuery(id), cancellationToken);
+            var result = await _mediator.Send(new GetCategoryByIdQuery(id), cancellationToken);
             if (result.IsFailure) return HandleFailure(result);
 
             return Ok(result);
         }
 
-        [HttpPost("list")]
+        [HttpGet("all")]
         [AllowAnonymous]
-        public async Task<IActionResult> GetList([FromBody] GetProductListQuery query, CancellationToken cancellationToken)
+        public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
         {
-            var result = await _mediator.Send(query, cancellationToken);
-            if (result.IsFailure) return HandleFailure(result);
-
+            var result = await _mediator.Send(new GetCategoryListQuery(), cancellationToken);
             return Ok(result);
         }
 

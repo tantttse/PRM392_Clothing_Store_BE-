@@ -9,4 +9,4 @@ public record AddToCartCommand(Guid UserId, AddToCartDto Item) : ICommand<CartDt
 
 public record RemoveCartItemCommand(Guid UserId, RemoveCartItemDto Item) : ICommand<CartDto>;
 
-public record CartCheckoutCommand(Guid UserId, CartCheckoutDto Checkout) : ICommand<CartDto>;
+public record CartCheckoutCommand(Guid UserId) : ICommand<CartDto>;

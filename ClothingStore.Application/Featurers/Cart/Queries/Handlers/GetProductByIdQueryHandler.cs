@@ -1,33 +1,28 @@
-// using AutoMapper;
-// using ClothingStore.Application.Features.Products.Dtos;
-// using ClothingStore.Application.Features.Products.Queries;
-// using ClothingStore.Application.Features.User.Dtos;
-// using ClothingStore.Domain.Repositories;
-// using MediatR;
-// using Shared.Application.Abstractions.Messaging;
-// using Shared.Domain.Common.ResponseModel;
+using AutoMapper;
+using ClothingStore.Application.Features.Carts.Dtos;
+using ClothingStore.Domain.Repositories;
+using Shared.Application.Abstractions.Messaging;
+using Shared.Domain.Common.ResponseModel;
 
-// namespace ClothingStore.Application.Features.User.Queries
-// {
-//     public class GetProductByIdQueryHandler 
-//     : IQueryHandler<GetProductByIdQuery, ProductDto>
-// {
-//     private readonly IProductRepository _productRepository;
-//     private readonly IMapper _mapper;
+namespace ClothingStore.Application.Features.Carts.Queries;
 
-//     public GetProductByIdQueryHandler(IProductRepository productRepository, IMapper mapper)
-//     {
-//         _productRepository = productRepository;
-//         _mapper = mapper;
-//     }
+public class GetCartByUserIdQueryHandler : IQueryHandler<GetCartByUserIdQuery, CartDto>
+{
+    private readonly ICartRepository _cartRepository;
+    private readonly IMapper _mapper;
 
-//     public async Task<Result<ProductDto>> Handle(GetProductByIdQuery request, CancellationToken cancellationToken)
-//     {
-//         var product = await _productRepository.GetByIdAsync(request.Id, cancellationToken);
-//         if (product is null)
-//             return Result.Failure<ProductDto>(new Error("ProductNotFound", "Product not found"));
+    public GetCartByUserIdQueryHandler(ICartRepository cartRepository, IMapper mapper)
+    {
+        _cartRepository = cartRepository;
+        _mapper = mapper;
+    }
 
-//         return Result.Success(_mapper.Map<ProductDto>(product));
-//     }
-// }
-// }
+    public async Task<Result<CartDto>> Handle(GetCartByUserIdQuery query, CancellationToken cancellationToken)
+    {
+        var cart = await _cartRepository.GetActiveCartByUserIdAsync(query.UserId, cancellationToken);
+        if (cart == null)
+            return Result.Failure<CartDto>(new Error("CartNotFound", "No active cart found for this user."));
+
+        return Result.Success(_mapper.Map<CartDto>(cart));
+    }
+}

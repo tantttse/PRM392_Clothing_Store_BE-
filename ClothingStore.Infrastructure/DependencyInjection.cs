@@ -1,26 +1,26 @@
-using Application.Abstractions.Authentication;
+using System.Text;
+using Shared.Application.Abstractions.Authentication;
 using ClothingStore.Application.Abstractions.UnitOfWork;
 using ClothingStore.Domain.Repositories;
 using ClothingStore.Infrastructure.Common;
 using ClothingStore.Infrastructure.Persistence.Contexts;
 using ClothingStore.Infrastructure.Repositories;
-using Infrastructure.Authentication;
+using Shared.Infrastructure.Authentication;
 using Infrastructure.Data.Interceptors;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Shared.Application.Abstractions.Authentication;
+using Microsoft.IdentityModel.Tokens;
 using Shared.Application.Abstractions.UnitOfWork;
 using Shared.Authentication;
-using Shared.Infrastructure.Authentication;
 using Shared.Infrastructure.Common;
 using Shared.Infrastructure.Configs.Security;
 using Shared.Infrastructure.Data.Interceptors;
 // using SharedLibrary.Utils;
 
-namespace Infrastructure
+namespace Shared.Infrastructure
 {
     public static class DependencyInjection
     {
@@ -28,7 +28,30 @@ namespace Infrastructure
         {
             // Bind JwtConfigs from appsettings.json
             services.Configure<JwtConfigs>(configuration.GetSection("JwtConfigs"));
+            var jwtSettings = configuration.GetSection("JwtConfigs").Get<JwtConfigs>();
+            var key = Encoding.ASCII.GetBytes(jwtSettings.Secret);
 
+            services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+            .AddJwtBearer(options =>
+            {
+                options.RequireHttpsMetadata = false;
+                options.SaveToken = true;
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(key),
+                    ValidateIssuer = true,
+                    ValidIssuer = jwtSettings.Issuer,
+                    ValidateAudience = true,
+                    ValidAudience = jwtSettings.Audience,
+                    ValidateLifetime = true,
+                    ClockSkew = TimeSpan.Zero
+                };
+            });
             services.AddScoped<ISaveChangesInterceptor, AuditableEntityInterceptor>();
             services.AddDbContext<UsersDbContext>((sp, options) =>
             {
@@ -55,6 +78,10 @@ namespace Infrastructure
             services.AddScoped<ICompositeUnitOfWork, CompositeUnitOfWork>();
             services.AddHttpContextAccessor();
             services.AddScoped<ICurrentUserService, CurrentUserService>();
+            services.AddControllers(options =>
+            {
+                options.ModelBinderProviders.Insert(0, new CurrentUserModelBinderProvider());
+            });
             // var provider = services.BuildServiceProvider().GetRequiredService<ILoggerFactory>();
             // var logger = provider.CreateLogger<AutoMigration>();
 

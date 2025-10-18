@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Shared.Domain.Common.DDD;
-using Application.Abstractions.Authentication;
+using Shared.Application.Abstractions.Authentication;
 
 namespace Infrastructure.Data.Interceptors
 {

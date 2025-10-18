@@ -1,8 +1,7 @@
 using System.Threading;
 using System.Threading.Tasks;
-using ClothingStore.Application.Features.Products.Commands;
-using ClothingStore.Application.Features.Products.Dtos;
-using ClothingStore.Application.Features.Products.Queries;
+using ClothingStore.Application.Features.Carts.Commands;
+using ClothingStore.Application.Features.Carts.Dtos;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -11,23 +10,23 @@ using Shared.Application.Abstractions.DTOs;
 using Shared.Domain.Common.ResponseModel;
 using Shared.Presentation.Common;
 using Shared.Presentation.Common.Attributes;
+using ClothingStore.Application.Features.Carts.Queries;
 
 namespace ClothingStore.API.Controllers
 {
     [Route("api/[controller]")]
-    public class ProductsController : ApiController
+    public class CartsController : ApiController
     {
-        public ProductsController(IMediator mediator) : base(mediator) { }
+        public CartsController(IMediator mediator) : base(mediator) { }
 
-        [HttpPost]
+        [HttpPost("add")]
         [Authorize(Roles = "Admin,Guest,Customer")]
-        public async Task<IActionResult> Create(
+        public async Task<IActionResult> AddToCart(
             [FromCurrentUser] CurrentUserDto user,
-            [FromBody] ProductCreateCommand command,
+            [FromBody] AddToCartDto item,
             CancellationToken cancellationToken)
         {
-            // Optionally attach user info to command if needed
-            var result = await _mediator.Send(command, cancellationToken);
+            var result = await _mediator.Send(new AddToCartCommand(user.UserId, item), cancellationToken);
             if (result.IsFailure) return HandleFailure(result);
 
             var commit = await _mediator.Send(new SaveChangesCommand(), cancellationToken);
@@ -36,17 +35,14 @@ namespace ClothingStore.API.Controllers
             return Ok(result);
         }
 
-        [HttpPut("{id:guid}")]
+        [HttpPost("remove")]
         [Authorize(Roles = "Admin,Guest,Customer")]
-        public async Task<IActionResult> Update(
-            Guid id,
+        public async Task<IActionResult> RemoveItem(
             [FromCurrentUser] CurrentUserDto user,
-            [FromBody] ProductUpdateCommand command,
+            [FromBody] RemoveCartItemDto item,
             CancellationToken cancellationToken)
         {
-            command = command with { Id = id };
-
-            var result = await _mediator.Send(command, cancellationToken);
+            var result = await _mediator.Send(new RemoveCartItemCommand(user.UserId, item), cancellationToken);
             if (result.IsFailure) return HandleFailure(result);
 
             var commit = await _mediator.Send(new SaveChangesCommand(), cancellationToken);
@@ -55,14 +51,13 @@ namespace ClothingStore.API.Controllers
             return Ok(result);
         }
 
-        [HttpDelete("{id:guid}")]
+        [HttpPost("checkout")]
         [Authorize(Roles = "Admin,Guest,Customer")]
-        public async Task<IActionResult> Delete(
-            Guid id,
+        public async Task<IActionResult> Checkout(
             [FromCurrentUser] CurrentUserDto user,
             CancellationToken cancellationToken)
         {
-            var result = await _mediator.Send(new ProductDeleteCommand(id), cancellationToken);
+            var result = await _mediator.Send(new CartCheckoutCommand(user.UserId), cancellationToken);
             if (result.IsFailure) return HandleFailure(result);
 
             var commit = await _mediator.Send(new SaveChangesCommand(), cancellationToken);
@@ -71,25 +66,18 @@ namespace ClothingStore.API.Controllers
             return Ok(result);
         }
 
-        [HttpGet("{id:guid}")]
-        [AllowAnonymous]
-        public async Task<IActionResult> GetById(Guid id, CancellationToken cancellationToken)
+        [HttpGet]
+        [Authorize(Roles = "Admin,Guest,Customer")]
+        public async Task<IActionResult> GetCart(
+    [FromCurrentUser] CurrentUserDto user,
+    CancellationToken cancellationToken)
         {
-            var result = await _mediator.Send(new GetProductByIdQuery(id), cancellationToken);
+            var result = await _mediator.Send(new GetCartByUserIdQuery(user.UserId), cancellationToken);
             if (result.IsFailure) return HandleFailure(result);
 
             return Ok(result);
         }
 
-        [HttpPost("list")]
-        [AllowAnonymous]
-        public async Task<IActionResult> GetList([FromBody] GetProductListQuery query, CancellationToken cancellationToken)
-        {
-            var result = await _mediator.Send(query, cancellationToken);
-            if (result.IsFailure) return HandleFailure(result);
-
-            return Ok(result);
-        }
 
         [HttpGet("health")]
         [AllowAnonymous]

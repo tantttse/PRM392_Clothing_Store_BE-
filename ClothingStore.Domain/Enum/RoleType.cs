@@ -6,5 +6,6 @@ public enum RoleType
     Admin = 1,
     Manager = 2,
     Customer = 3,
-    Guest = 4
+    Guest = 4,
+    User = 5
 }

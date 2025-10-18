@@ -1,5 +1,6 @@
 
 using Infrastructure;
+using Shared.Infrastructure;
 using Shared.Infrastructure.Configs.Swagger;
 // using SharedLibrary.Utils;
 
@@ -48,8 +49,8 @@ namespace ClothingStore.BE.API
             }
             //app.UseHttpsRedirection();
 
-            app.UseAuthorization();
             app.UseAuthentication();
+            app.UseAuthorization();
 
 
             app.MapControllers();

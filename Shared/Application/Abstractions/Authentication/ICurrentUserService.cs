@@ -1,10 +1,16 @@
-namespace Application.Abstractions.Authentication
+using Shared.Application.Abstractions.DTOs;
+
+namespace Shared.Application.Abstractions.Authentication
 {
     public interface ICurrentUserService
-    {
-        string? UserId { get; }
-        string? Email { get; }
-        string? Name { get; }
-        //IReadOnlyList<string> Roles { get; } 
-    }
+{
+    Guid UserId { get; }
+    string? Email { get; }
+    string? Name { get; }
+    IEnumerable<string> Roles { get; }
+    string? Jti { get; }
+
+    CurrentUserDto GetCurrentUser();
+}
+
 }
