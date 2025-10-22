@@ -81,11 +81,11 @@ namespace ClothingStore.API.Controllers
             return Ok(result);
         }
 
-        [HttpPost("list")]
+        [HttpGet("list")]
         [AllowAnonymous]
-        public async Task<IActionResult> GetList([FromBody] GetProductListQuery query, CancellationToken cancellationToken)
+        public async Task<IActionResult> GetList([FromQuery] ProductFilterDto filter, CancellationToken cancellationToken)
         {
-            var result = await _mediator.Send(query, cancellationToken);
+            var result = await _mediator.Send(new GetProductListQuery(filter), cancellationToken);
             if (result.IsFailure) return HandleFailure(result);
 
             return Ok(result);

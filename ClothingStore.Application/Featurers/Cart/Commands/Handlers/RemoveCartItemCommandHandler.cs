@@ -38,12 +38,13 @@ public class RemoveCartItemCommandHandler : ICommandHandler<RemoveCartItemComman
     {
         var userId = command.UserId;
         var productId = command.Item.ProductId;
+        var removeQuantity = command.Item.Quantity;
 
         var cart = await _cartRepository.GetActiveCartByUserIdAsync(userId, cancellationToken);
         if (cart == null)
             return Result.Failure<CartDto>(new Error("CartNotFound", "No active cart found for user."));
 
-        cart.RemoveItem(productId);
+        cart.RemoveItem(productId, removeQuantity);
 
         if (!cart.Items.Any())
         {

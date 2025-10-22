@@ -19,9 +19,9 @@ namespace ClothingStore.Infrastructure.Repositories
 
         public async Task<Cart?> GetActiveCartByUserIdAsync(Guid userId, CancellationToken cancellationToken = default)
         {
-            return await _dbSet
-                .AsNoTracking()
-                .FirstOrDefaultAsync(c => c.UserId == userId && c.Status == "Active", cancellationToken);
+            return await GetQueryable(asNoTracking: false) 
+                        .Include(c => c.Items) // eager load items if you’ll modify them
+                        .FirstOrDefaultAsync(c => c.UserId == userId && c.Status == "Active", cancellationToken);
         }
 
     }

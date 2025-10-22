@@ -71,6 +71,9 @@ public class RemoveCartItemDto
 {
     [JsonPropertyName("product_id")]
     public Guid ProductId { get; set; }
+    [JsonPropertyName("quantity")]
+    [DefaultValue(1)]
+    public int Quantity { get; set; }
 }
 
 public class CartCheckoutDto

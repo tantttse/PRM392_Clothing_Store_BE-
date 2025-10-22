@@ -43,27 +43,28 @@ public class AddToCartCommandHandler : ICommandHandler<AddToCartCommand, CartDto
 
     public async Task<Result<CartDto>> Handle(AddToCartCommand command, CancellationToken cancellationToken)
     {
-        var userId = command.UserId; // You may need to inject this from context/session
-        var productId = command.Item.ProductId;
-        var quantity = command.Item.Quantity;
-
-        var product = await _productRepository.GetByIdAsync(productId, cancellationToken);
-        if (product == null)
+        // validate product
+        var product = await _productRepository.GetByIdAsync(command.Item.ProductId, cancellationToken);
+        if (product is null)
             return Result.Failure<CartDto>(new Error("ProductNotFound", "Product does not exist."));
 
-        if (!product.IsInStock(quantity))
+        if (!product.IsInStock(command.Item.Quantity))
             return Result.Failure<CartDto>(new Error("OutOfStock", "Not enough stock available."));
 
-        var cart = await _cartRepository.GetActiveCartByUserIdAsync(userId, cancellationToken);
-        if (cart == null || cart.Status != "Active")
-        {
-            cart = Cart.Create(userId);
+        // get or create cart
+        var cart = await _cartRepository.GetActiveCartByUserIdAsync(command.UserId, cancellationToken)
+                   ?? Cart.Create(command.UserId);
+
+        // add item
+        cart.AddItem(product, command.Item.Quantity);
+
+        // persist
+        if (cart.Id == Guid.Empty) // new cart
             await _cartRepository.AddAsync(cart, cancellationToken);
-        }
+        else
+            _cartRepository.Update(cart, cancellationToken);
 
-        cart.AddItem(product, quantity);
-        _cartRepository.Update(cart, cancellationToken);
-
+        // map and return
         return Result.Success(_mapper.Map<CartDto>(cart));
     }
 }

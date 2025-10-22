@@ -41,14 +41,27 @@ namespace ClothingStore.Domain.Entities
             RecalculateTotal();
         }
 
-        public void RemoveItem(Guid productId)
+        public void RemoveItem(Guid productId, int quantityToRemove = 1)
         {
+            if (quantityToRemove <= 0)
+                throw new ArgumentException("Quantity to remove must be greater than zero.");
+
             var item = Items.FirstOrDefault(i => i.ProductId == productId);
-            if (item != null)
+            if (item == null)
+                return;
+
+            if (item.Quantity <= quantityToRemove)
             {
+                // remove the item completely
                 Items.Remove(item);
-                RecalculateTotal();
             }
+            else
+            {
+                // just decrease the quantity
+                item.UpdateQuantity(item.Quantity - quantityToRemove);
+            }
+
+            RecalculateTotal();
         }
 
         public void UpdateItemQuantity(Guid productId, int newQuantity)

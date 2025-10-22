@@ -6,12 +6,13 @@ using ClothingStore.Domain.Entities;
 using ClothingStore.Domain.Repositories;
 using Shared.Application.Abstractions.Messaging;
 using Shared.Domain.Common.ResponseModel;
+using Shared.Domain.Common.ResponseModel.Pagination;
 using Shared.Helpers;
 
 namespace ClothingStore.Application.Features.Products.Queries
 {
     public class GetProductListQueryHandler
-        : IQueryHandler<GetProductListQuery, IEnumerable<ProductDto>>
+        : IQueryHandler<GetProductListQuery, PaginatedResult<ProductDto>>
     {
         private readonly IProductRepository _productRepository;
         private readonly IMapper _mapper;
@@ -22,7 +23,7 @@ namespace ClothingStore.Application.Features.Products.Queries
             _mapper = mapper;
         }
 
-        public async Task<Result<IEnumerable<ProductDto>>> Handle(GetProductListQuery request, CancellationToken cancellationToken)
+        public async Task<Result<PaginatedResult<ProductDto>>> Handle(GetProductListQuery request, CancellationToken cancellationToken)
         {
             var filter = request.Filter;
             var pageIndex = filter.PageIndex;
@@ -62,7 +63,14 @@ namespace ClothingStore.Application.Features.Products.Queries
                 cancellationToken
             );
 
-            return Result.Success(_mapper.Map<IEnumerable<ProductDto>>(items));
+            var paginatedResult = new PaginatedResult<ProductDto>(
+                pageIndex: pageIndex,
+                pageSize: pageSize,
+                count: totalCount,
+                data: _mapper.Map<IEnumerable<ProductDto>>(items)
+            );
+
+            return Result.Success(paginatedResult);
         }
     }
 }

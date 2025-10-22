@@ -270,11 +270,11 @@ namespace Shared.Infrastructure.Common
             }
         }
 
-        public IQueryable<T> GetQueryable()
+        public IQueryable<T> GetQueryable(bool asNoTracking = true)
         {
             try
             {
-                return _dbSet.AsNoTracking();
+                return asNoTracking ? _dbSet.AsNoTracking() : _dbSet;
             }
             catch (Exception ex)
             {

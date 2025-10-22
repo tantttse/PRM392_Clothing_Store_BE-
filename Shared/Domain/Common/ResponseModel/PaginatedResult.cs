@@ -1,9 +1,17 @@
-﻿namespace Shared.Pagination;
+﻿namespace Shared.Domain.Common.ResponseModel.Pagination;
 
-public class PaginatedResult<TEntity>(int pageIndex, int pageSize, long count, IEnumerable<TEntity> data) where TEntity : class
+public class PaginatedResult<TEntity> where TEntity : class
 {
-    public int PageIndex { get; } = pageIndex;
-    public int PageSize { get; } = pageSize;
-    public long Count { get; } = count;
-    public IEnumerable<TEntity> Data { get; } = data;
+    public int PageIndex { get; init; }
+    public int PageSize { get; init; }
+    public long Count { get; init; }
+    public IEnumerable<TEntity> Data { get; init; } = Enumerable.Empty<TEntity>();
+
+    public PaginatedResult(int pageIndex, int pageSize, long count, IEnumerable<TEntity> data)
+    {
+        PageIndex = pageIndex;
+        PageSize = pageSize;
+        Count = count;
+        Data = data ?? Enumerable.Empty<TEntity>();
+    }
 }

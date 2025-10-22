@@ -1,6 +1,6 @@
 using ClothingStore.Domain.Enums;
 using Shared.Application.Abstractions.DTOs;
-using Shared.Pagination;
+using Shared.Domain.Common.ResponseModel.Pagination;
 using System.ComponentModel;
 using System.Text.Json.Serialization;
 

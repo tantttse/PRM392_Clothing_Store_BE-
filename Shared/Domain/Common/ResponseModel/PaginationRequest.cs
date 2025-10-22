@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel;
 
-namespace Shared.Pagination;
+namespace Shared.Domain.Common.ResponseModel.Pagination;
 
 public class PageFilterRequestDto
 {
