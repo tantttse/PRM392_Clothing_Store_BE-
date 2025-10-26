@@ -47,6 +47,7 @@ namespace ClothingStore.BE.API
                 app.UseSwagger();
                 app.UseSwaggerUI(SwaggerUIConfig.ConfigureSwaggerUI);
             }
+            app.UseExceptionHandler();
             //app.UseHttpsRedirection();
 
             app.UseAuthentication();

@@ -1,35 +1,43 @@
+using Application.Abstractions.Payment;
 using AutoMapper;
 using ClothingStore.Application.Features.Carts.Dtos;
+using ClothingStore.Application.Features.Payments.Dtos;
 using ClothingStore.Domain.Repositories;
 using Shared.Application.Abstractions.Messaging;
 using Shared.Domain.Common.ResponseModel;
 
 namespace ClothingStore.Application.Features.Carts.Commands;
 
-public class CartCheckoutCommandHandler : ICommandHandler<CartCheckoutCommand, CartDto>
-{
-    private readonly ICartRepository _cartRepository;
-    private readonly IMapper _mapper;
-
-    public CartCheckoutCommandHandler(ICartRepository cartRepository, IMapper mapper)
+public class CartCheckoutCommandHandler : ICommandHandler<CartCheckoutCommand, CartCheckoutResultDto>
     {
-        _cartRepository = cartRepository;
-        _mapper = mapper;
+        private readonly ICartRepository _cartRepository;
+        private readonly IVnPayService _vnPayService;
+
+        public CartCheckoutCommandHandler(ICartRepository cartRepository, IVnPayService vnPayService)
+        {
+            _cartRepository = cartRepository;
+            _vnPayService = vnPayService;
+        }
+
+        public async Task<Result<CartCheckoutResultDto>> Handle(CartCheckoutCommand command, CancellationToken cancellationToken)
+        {
+            var cart = await _cartRepository.GetActiveCartByUserIdAsync(command.UserId, cancellationToken);
+            if (cart == null || !cart.Items.Any())
+                return Result.Failure<CartCheckoutResultDto>(new Error("Cart.NotFound", "Your cart is empty."));
+
+            var paymentUrl = _vnPayService.CreatePaymentUrl(new CreatePaymentDto
+            {
+                CartId = cart.Id,
+                Amount = cart.TotalPrice,
+                ReturnUrl = "return url server"
+            });
+
+            return Result.Success(new CartCheckoutResultDto
+            {
+                CartId = cart.Id,
+                PaymentSuccess = false,
+                PaymentUrl = paymentUrl,
+                PaymentMessage = "Redirect user to VNPay for payment."
+            });
+        }
     }
-
-    public async Task<Result<CartDto>> Handle(CartCheckoutCommand command, CancellationToken cancellationToken)
-    {
-        var userId = command.UserId;
-        var cart = await _cartRepository.GetActiveCartByUserIdAsync(userId, cancellationToken);
-
-        if (cart == null || !cart.Items.Any())
-            return Result.Failure<CartDto>(new Error("CartInvalid", "No active cart or cart is empty."));
-
-        cart.Checkout(); // sets Status = "Completed"
-        _cartRepository.Update(cart, cancellationToken);
-
-        //  Optionally raise a domain event here: new CartCheckedOutEvent(cart.Id, userId)
-
-        return Result.Success(_mapper.Map<CartDto>(cart));
-    }
-}

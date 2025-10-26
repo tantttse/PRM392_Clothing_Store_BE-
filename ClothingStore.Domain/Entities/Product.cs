@@ -66,6 +66,12 @@ namespace ClothingStore.Domain.Entities
             StockQuantity -= amount;
         }
 
+        public void ChangeStock(int amount)
+        {
+            if (amount < 0) throw new ArgumentException("Amount must be greater or equal 0.");
+            StockQuantity = amount;
+        }
+
         public bool IsInStock(int requestedQuantity) => StockQuantity >= requestedQuantity;
 
         protected override void Apply(IDomainEvent @event)

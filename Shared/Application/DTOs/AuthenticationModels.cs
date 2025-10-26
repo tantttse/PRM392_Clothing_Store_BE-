@@ -1,3 +1,5 @@
+using Shared.Presentation.Common.Attributes;
+
 namespace Shared.Application.Abstractions.DTOs;
 
 // Deprecated: use Application.Users.Commands.LoginUserCommand directly
@@ -36,6 +38,7 @@ public class RefreshTokenRequestDto
 }
 
 
+[SwaggerIgnoreModel]
 public class CurrentUserDto
 {
     public Guid UserId { get; set; }

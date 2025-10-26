@@ -25,6 +25,14 @@ namespace ClothingStore.Infrastructure.Persistence.Configurations
                             .HasColumnName("product_id")
                             .IsRequired();
 
+                      builder.Property(u => u.ProductName)
+                            .HasColumnName("product_name")
+                            .HasMaxLength(100);
+                     
+                      builder.Property(u => u.ImageUrl)
+                            .HasColumnName("image_url")
+                            .HasMaxLength(100);
+
                      builder.Property(ci => ci.Quantity)
                             .HasColumnName("quantity")
                             .IsRequired();
@@ -35,9 +43,9 @@ namespace ClothingStore.Infrastructure.Persistence.Configurations
                             .IsRequired();
 
                      builder.Property(u => u.CreatedAt)
-        .HasColumnName("created_at")
-        .HasColumnType("timestamp with time zone")
-        .HasDefaultValueSql("NOW()");
+                            .HasColumnName("created_at")
+                            .HasColumnType("timestamp with time zone")
+                            .HasDefaultValueSql("NOW()");
 
                      builder.Property(u => u.CreatedBy)
                             .HasColumnName("created_by")

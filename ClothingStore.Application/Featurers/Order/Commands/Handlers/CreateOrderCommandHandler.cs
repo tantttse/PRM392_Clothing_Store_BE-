@@ -13,8 +13,7 @@ namespace ClothingStore.Application.Features.Orders.Commands.Handlers
     {
         public CreateOrderCommandValidator()
         {
-            RuleFor(x => x.CartId)
-                .NotEmpty().WithMessage("CartId is required.");
+            
 
             RuleFor(x => x.UserId)
                 .NotEmpty().WithMessage("UserId is required.");
@@ -47,14 +46,14 @@ namespace ClothingStore.Application.Features.Orders.Commands.Handlers
         public async Task<Result<OrderDto>> Handle(CreateOrderCommand command, CancellationToken cancellationToken)
         {
             // Load the cart snapshot
-            var cart = await _cartRepository.GetByIdAsync(command.CartId, cancellationToken);
+            var cart = await _cartRepository.GetActiveCartByUserIdAsync(command.UserId, cancellationToken);
             if (cart == null || !cart.Items.Any())
                 return Result.Failure<OrderDto>(new Error("CartInvalid", "Cart not found or empty."));
 
             // Create the order aggregate from the cart
             var order = Order.Create(
                 command.UserId,
-                command.CartId,
+                cart.Id,
                 command.PaymentMethod,
                 command.BillingAddress,
                 cart.Items

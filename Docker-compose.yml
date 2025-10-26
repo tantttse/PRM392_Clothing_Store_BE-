@@ -1,0 +1,47 @@
+services:
+  api:
+    build: .
+    ports:
+      - "5268:5268"
+    environment:
+      # Match launchSettings.json
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:5268
+      # for HTTPS inside Docker, uncomment and configure certs:
+      # - ASPNETCORE_URLS=https://+:7285;http://+:5268
+      # - ASPNETCORE_HTTPS_PORT=7285
+
+      # Logging
+      - Logging__LogLevel__Default=Information
+      - Logging__LogLevel__Microsoft.AspNetCore=Warning
+
+      # Database connection
+      - ConnectionStrings__DefaultConnection=Server=db;Port=5432;Database=clothing_store;User Id=postgres;Password=postgres123456789;Include Error Detail=true
+
+      # JWT
+      - JwtConfigs__Secret=super-secret-test-key-1234567890
+      - JwtConfigs__Issuer=ClothingStore
+      - JwtConfigs__Audience=ClothingStoreUsers
+      - JwtConfigs__ExpiryMinutes=100
+
+      # Error handling
+      - ErrorHandling__IncludeMetadata=false
+
+      # VNPay
+      - VNPay__Url=https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
+      - VNPay__TmnCode=YOUR_TMN_CODE
+      - VNPay__HashSecret=YOUR_HASH_SECRET
+      - VNPay__ReturnUrl=https://your-app.up.railway.app/api/v1/payment-return
+
+    depends_on:
+      - db
+
+  db:
+    image: postgres:15
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres123456789
+      POSTGRES_DB: clothing_store
+    ports:
+      - "5432:5432"

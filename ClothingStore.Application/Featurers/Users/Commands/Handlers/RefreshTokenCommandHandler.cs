@@ -28,7 +28,8 @@ namespace ClothingStore.Application.Features.User.Commands.RegisterUser
         {
             var request = command.Request;
 
-            var principal = _jwtTokenService.ValidateToken(request.AccessToken);
+            //  Allow expired access token for refresh
+            var principal = _jwtTokenService.ValidateToken(request.AccessToken, allowExpired: true);
             if (principal == null)
             {
                 return Result.Failure<LoginResponseDto>(new Error("InvalidAccessToken", "Access token is invalid."));
@@ -41,6 +42,14 @@ namespace ClothingStore.Application.Features.User.Commands.RegisterUser
                 return Result.Failure<LoginResponseDto>(new Error("UserNotFound", "User not found."));
             }
 
+            // Validate refresh token structure and signature if using jwt as token
+            // var refreshPrincipal = _jwtTokenService.ValidateToken(request.RefreshToken);
+            // if (refreshPrincipal == null)
+            // {
+            //     return Result.Failure<LoginResponseDto>(new Error("InvalidRefreshToken", "Refresh token is malformed or invalid."));
+            // }
+
+            //  Check if refresh token matches and is still valid
             if (user.RefreshToken != request.RefreshToken || user.RefreshTokenExpiry <= DateTime.UtcNow)
             {
                 return Result.Failure<LoginResponseDto>(new Error("RefreshTokenExpired", "Refresh token is invalid or expired."));
@@ -63,6 +72,7 @@ namespace ClothingStore.Application.Features.User.Commands.RegisterUser
 
             return Result.Success(response);
         }
+
     }
 
 }

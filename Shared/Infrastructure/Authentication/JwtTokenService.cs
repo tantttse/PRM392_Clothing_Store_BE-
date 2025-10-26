@@ -9,6 +9,26 @@ using Shared.Infrastructure.Configs.Security;
 
 namespace Shared.Authentication;
 
+/// <summary>
+/// JwtTokenService handles generation and validation of authentication tokens.
+///
+/// <para><b>Access Token:</b></para>
+/// - Format: JWT (JSON Web Token)  
+/// - Contains user claims, roles, and metadata (exp, iss, aud)  
+/// - Short-lived (e.g., 60 minutes)  
+/// - Used for authenticating API requests  
+/// - Validated via <see cref="ValidateToken"/> with optional expiry bypass  
+///
+/// <para><b>Refresh Token:</b></para>
+/// - Format: Random base64 string (not a JWT)  
+/// - Long-lived (e.g., 7 days)  
+/// - Stored securely in the database  
+/// - Used to obtain new access tokens when expired  
+/// - Generated via <see cref="GenerateRefreshToken"/>  
+/// - Validated by direct comparison and expiry check — not decoded or parsed  
+///
+/// ⚠️ <b>Note:</b> Do not use <see cref="ValidateToken"/> on refresh tokens, as they are not JWTs.
+/// </summary>
 public class JwtTokenService : IJwtTokenService
 {
     private readonly JwtConfigs _jwt;
@@ -18,7 +38,8 @@ public class JwtTokenService : IJwtTokenService
         _jwt = options.Value;
     }
 
-    public string GenerateToken(Guid userId, string? email,string? name, IEnumerable<string> roles)
+    /// <inheritdoc />
+    public string GenerateToken(Guid userId, string? email, string? name, IEnumerable<string> roles)
     {
         var tokenHandler = new JwtSecurityTokenHandler();
         var key = Encoding.ASCII.GetBytes(_jwt.Secret);
@@ -48,7 +69,8 @@ public class JwtTokenService : IJwtTokenService
         return tokenHandler.WriteToken(token);
     }
 
-    public ClaimsPrincipal? ValidateToken(string token)
+    /// <inheritdoc />
+    public ClaimsPrincipal? ValidateToken(string token, bool allowExpired = false)
     {
         try
         {
@@ -63,7 +85,7 @@ public class JwtTokenService : IJwtTokenService
                 ValidIssuer = _jwt.Issuer,
                 ValidateAudience = true,
                 ValidAudience = _jwt.Audience,
-                ValidateLifetime = true,
+                ValidateLifetime = !allowExpired,
                 ClockSkew = TimeSpan.Zero
             };
 
@@ -75,6 +97,7 @@ public class JwtTokenService : IJwtTokenService
         }
     }
 
+    /// <inheritdoc />
     public string GenerateRefreshToken()
     {
         var randomNumber = new byte[32];
@@ -83,6 +106,7 @@ public class JwtTokenService : IJwtTokenService
         return Convert.ToBase64String(randomNumber);
     }
 
+    /// <inheritdoc />
     public bool IsTokenExpired(string token)
     {
         try

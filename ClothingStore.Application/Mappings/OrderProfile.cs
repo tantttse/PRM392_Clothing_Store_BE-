@@ -25,7 +25,7 @@ namespace ClothingStore.Application.Features.Orders.Mappings
                 ));
 
             CreateMap<AddOrderItemDto, OrderItem>()
-                .ConstructUsing(dto => new OrderItem(dto.ProductId, dto.Quantity, dto.UnitPrice));
+                .ConstructUsing(dto =>  OrderItem.Create(dto.ProductId, dto.Quantity, dto.UnitPrice));
         }
     }
 }

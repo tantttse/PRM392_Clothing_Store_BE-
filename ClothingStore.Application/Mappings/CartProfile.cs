@@ -9,10 +9,18 @@ namespace ClothingStore.Application.Mappings
         public CartProfile()
         {
             // Entity to DTO
-            CreateMap<Cart, CartDto>();
+            CreateMap<Cart, CartDto>()
+                .ForMember(dest => dest.Items, opt => opt.MapFrom(src => src.Items.OrderBy(i => i.CreatedAt)));
+
+            //if use this as mapper then have to include the product to properly map in repo
+            // CreateMap<CartItem, CartItemDto>() 
+            //     .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product.ProductName))
+            //     .ForMember(dest => dest.ImageUrl, opt => opt.MapFrom(src => src.Product.ImageUrl));
+
+            // Map directly from CartItem fields
             CreateMap<CartItem, CartItemDto>()
-                .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product.ProductName))
-                .ForMember(dest => dest.ImageUrl, opt => opt.MapFrom(src => src.Product.ImageUrl));
+                .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.ProductName))
+                .ForMember(dest => dest.ImageUrl, opt => opt.MapFrom(src => src.ImageUrl));
 
             // DTO to Entity (for commands)
             CreateMap<AddToCartDto, CartItem>()

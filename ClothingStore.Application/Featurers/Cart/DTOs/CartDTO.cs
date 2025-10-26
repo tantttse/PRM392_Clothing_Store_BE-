@@ -81,3 +81,18 @@ public class CartCheckoutDto
     [JsonPropertyName("cart_id")]
     public Guid CartId { get; set; }
 }
+
+
+
+public class CartCheckoutResultDto
+{
+    public Guid CartId { get; set; }
+
+    public bool PaymentSuccess { get; set; }
+    public string PaymentMessage { get; set; } = default!;
+    public string? TransactionNo { get; set; }
+    public string? ResponseCode { get; set; }
+
+    public string? PaymentUrl { get; set; }
+    public DateTime? CheckedOutAt { get; set; }
+}

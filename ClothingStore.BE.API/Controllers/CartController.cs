@@ -35,6 +35,22 @@ namespace ClothingStore.API.Controllers
             return Ok(result);
         }
 
+        [HttpPost("update")]
+        [Authorize(Roles = "Admin,Guest,Customer")]
+        public async Task<IActionResult> UpdateItem(
+            [FromCurrentUser] CurrentUserDto user,
+            [FromBody] UpdateCartItemDto item,
+            CancellationToken cancellationToken)
+        {
+            var result = await _mediator.Send(new UpdateCartItemCommand(user.UserId, item), cancellationToken);
+            if (result.IsFailure) return HandleFailure(result);
+
+            var commit = await _mediator.Send(new SaveChangesCommand(), cancellationToken);
+            if (commit.IsFailure) return HandleFailure(commit);
+
+            return Ok(result);
+        }
+
         [HttpPost("remove")]
         [Authorize(Roles = "Admin,Guest,Customer")]
         public async Task<IActionResult> RemoveItem(

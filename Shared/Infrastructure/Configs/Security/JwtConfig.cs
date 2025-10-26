@@ -1,4 +1,3 @@
-namespace Shared.Infrastructure.Configs.Security;
 public class JwtConfigs
 {
     public string Secret { get; init; } = default!;

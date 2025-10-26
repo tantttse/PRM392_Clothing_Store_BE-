@@ -47,5 +47,6 @@ public class SwaggerConfigSetup : IConfigureOptions<SwaggerGenOptions>
             { securityScheme, Array.Empty<string>() }
         });
         options.SchemaFilter<DefaultValueSchemaFilter>();
+        options.SchemaFilter<IgnoreModelSchemaFilter>();
     }
 }
