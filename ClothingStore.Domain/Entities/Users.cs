@@ -24,7 +24,16 @@ namespace ClothingStore.Domain.Entities
         // EF Core constructor
         private Users() { }
 
-        public static Users Create(string? email, string userName, string passwordHash, string? profileImageUrl = null, RoleType role = RoleType.Customer)
+        public static Users Create(
+            string? email,
+            string userName,
+            string passwordHash,
+            string? firstName = null,
+            string? lastName = null,
+            string? phoneNumber = null,
+            string? address = null,
+            string? profileImageUrl = null,
+            RoleType? role = null)
         {
             var user = new Users
             {
@@ -32,19 +41,28 @@ namespace ClothingStore.Domain.Entities
                 UserName = userName,
                 PasswordHash = passwordHash,
                 ProfileImageUrl = profileImageUrl,
+                FirstName = firstName,
+                LastName = lastName,
+                PhoneNumber = phoneNumber,
+                Address = address,
                 IsActive = true,
-                Roles = new List<RoleType> { RoleType.Customer, role }
+                Roles = new List<RoleType> { RoleType.Customer }
             };
 
-            // Domain event disabled for now
-            // user.RaiseEvent(new UserRegisteredEvent(user.Id, user.Email!, user.UserName));
+            // Only add the role if it's provided and not already in the list
+            if (role.HasValue && !user.Roles.Contains(role.Value))
+                user.Roles.Add(role.Value);
 
+            // Domain event (optional, currently disabled)
+            // user.RaiseEvent(new UserRegisteredEvent(user.Id, user.Email!, user.UserName))
             return user;
         }
+
 
         // Domain behaviors
         public void ChangeEmail(string newEmail)
         {
+            
             Email = newEmail;
             // RaiseEvent(new UserEmailChangedEvent(Id, newEmail));
         }
@@ -57,13 +75,13 @@ namespace ClothingStore.Domain.Entities
 
         public void UpdateProfile(string? firstName, string? lastName, string? phone, string? address, string? profileImageUrl)
         {
-            FirstName = firstName;
-            LastName = lastName;
-            PhoneNumber = phone;
-            Address = address;
-            ProfileImageUrl = profileImageUrl;
-
+            FirstName = firstName ?? FirstName;
+            LastName = lastName ?? LastName;
+            PhoneNumber = phone ?? PhoneNumber;
+            Address = address ?? Address;
+            ProfileImageUrl = profileImageUrl ?? ProfileImageUrl;
         }
+
 
         public void DeactivateUser()
         {

@@ -13,7 +13,7 @@ public class UserResponseDto : BaseDto<Guid>
     public string? LastName { get; set; }
     public string? PhoneNumber { get; set; }
     public string? Address { get; set; }
-    public List<RoleType> Roles { get; set; } = new();
+    public IEnumerable<string>? Roles { get; set; } 
 }
 
 public class LoginRequestDto
@@ -30,10 +30,18 @@ public class RegisterRequestDto
     public string Email { get; set; } = default!;
     [DefaultValue("Admin")]
     public string UserName { get; set; } = default!;
+
     [DefaultValue("123456789")]
     public string Password { get; set; } = default!;
-    // [DefaultValue("Admin")]
-    // // public string FirstName { get; set; } = default!;
-    // // [DefaultValue("User")]
-    // // public string LastName { get; set; } = default!;
+    
+    [DefaultValue("Admin")]
+    public string FirstName { get; set; } = default!;
+    [DefaultValue("User")]
+    public string LastName { get; set; } = default!;
+
+    [DefaultValue("0123456789")]
+    public string PhoneNumber { get; set; } = default!;
+
+    [DefaultValue("some where in vietnam of course lmao")]
+    public string Address { get; set; } = default!;
 }

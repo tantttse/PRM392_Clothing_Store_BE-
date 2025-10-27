@@ -27,9 +27,14 @@ namespace Infrastructure.Data.Interceptors
                 {
                     entry.Entity.CreatedBy = name;
                     entry.Entity.CreatedAt = DateTime.UtcNow;
+                    entry.Entity.IsActive = true;
                 }
 
-                if (entry.State == EntityState.Added || entry.State == EntityState.Modified || entry.HasChangeOwnedEntities())
+                if (
+                    //entry.State == EntityState.Added ||
+                    entry.State == EntityState.Modified ||
+                    entry.HasChangeOwnedEntities()
+                    )
                 {
                     entry.Entity.ModifiedBy = name;
                     entry.Entity.ModifiedAt = DateTime.UtcNow;
