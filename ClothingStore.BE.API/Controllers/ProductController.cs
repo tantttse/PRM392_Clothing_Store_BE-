@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Shared.Application.Common.Commands;
 using Shared.Application.Abstractions.DTOs;
-using Shared.Domain.Common.ResponseModel;
 using Shared.Presentation.Common;
 using Shared.Presentation.Common.Attributes;
 

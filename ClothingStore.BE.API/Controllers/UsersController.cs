@@ -46,6 +46,19 @@ namespace ClothingStore.API.Controllers
             return Ok(result);
         }
 
+        [HttpPost("google-login")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GoogleLogin([FromBody] GoogleLoginRequestDto request, CancellationToken cancellationToken)
+        {
+            var result = await _mediator.Send(new GoogleLoginCommand(request.IdToken), cancellationToken);
+            if (result.IsFailure) return HandleFailure(result);
+
+            var commit = await _mediator.Send(new SaveChangesCommand(), cancellationToken);
+            if (commit.IsFailure) return HandleFailure(commit);
+
+            return Ok(result);
+        }
+
         [HttpPost("refresh-token")]
         [AllowAnonymous]
         public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequestDto request, CancellationToken cancellationToken)

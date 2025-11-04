@@ -1,6 +1,6 @@
 
+using ClothingStore.Infrastructure;
 using Infrastructure;
-using Shared.Infrastructure;
 using Shared.Infrastructure.Configs.Swagger;
 // using SharedLibrary.Utils;
 

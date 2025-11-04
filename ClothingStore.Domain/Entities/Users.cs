@@ -20,6 +20,7 @@ namespace ClothingStore.Domain.Entities
         public DateTime? RefreshTokenExpiry { get; private set; }
         public ICollection<RoleType> Roles { get; private set; } = new List<RoleType>();
         public virtual ICollection<Cart> Carts { get; private set; } = new List<Cart>();
+        public virtual ICollection<ExternalIdentity> ExternalIdentities { get; private set; } = new List<ExternalIdentity>();
 
         // EF Core constructor
         private Users() { }
@@ -37,6 +38,7 @@ namespace ClothingStore.Domain.Entities
         {
             var user = new Users
             {
+                Id = Guid.NewGuid(), //wasnt here before !!!!!!!!!
                 Email = EmailVal.From(email!).Value,
                 UserName = userName,
                 PasswordHash = passwordHash,
@@ -117,6 +119,15 @@ namespace ClothingStore.Domain.Entities
             RefreshTokenExpiry = expiry;
         }
 
+       public ExternalIdentity AddExternalIdentity(AuthProvider provider, string providerUserId)
+        {
+            if (ExternalIdentities.Any(e => e.Provider == provider))
+                throw new InvalidOperationException($"User already linked to {provider}.");
+
+            var external = new ExternalIdentity(Id, provider, providerUserId);
+            ExternalIdentities.Add(external);
+            return external;
+        }
         // Apply domain events (disabled for now)
         protected override void Apply(IDomainEvent @event)
         {

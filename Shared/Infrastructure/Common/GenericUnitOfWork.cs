@@ -7,7 +7,7 @@ using System.Collections.Concurrent;
 
 namespace Shared.Infrastructure.Common
 {
-    public class GenericUnitOfWork<TDbContext> : ISaveChangesUnitOfWork, IUnitOfWork where TDbContext : DbContext
+    public class GenericUnitOfWork<TDbContext> : IDbContextUnitOfWork, IUnitOfWork where TDbContext : DbContext
     {
         private readonly TDbContext _dbContext;
         private readonly ConcurrentDictionary<Type, object> _repositories;

@@ -66,7 +66,7 @@ namespace ClothingStore.Application.Features.User.Commands.RegisterUser
             var response = new LoginResponseDto(
                 AccessToken: newAccessToken,
                 RefreshToken: newRefreshToken,
-                ExpiresAt: DateTime.UtcNow.AddMinutes(60),
+                ExpiresAt: DateTime.UtcNow.AddMinutes(_jwtTokenService.ExpiryMinutes),
                 User: new UserInfoDto(user.Id, user.FirstName ?? "", user.UserName, user.Email, roles)
             );
 

@@ -32,11 +32,14 @@ namespace Shared.Authentication;
 public class JwtTokenService : IJwtTokenService
 {
     private readonly JwtConfigs _jwt;
-
     public JwtTokenService(IOptions<JwtConfigs> options)
     {
         _jwt = options.Value;
     }
+
+    /// <inheritdoc />
+    public int ExpiryMinutes => _jwt.ExpiryMinutes;
+    public int RefreshTokenExpiryDays => _jwt.RefreshTokenExpiryDays;
 
     /// <inheritdoc />
     public string GenerateToken(Guid userId, string? email, string? name, IEnumerable<string> roles)
@@ -118,6 +121,27 @@ public class JwtTokenService : IJwtTokenService
         catch
         {
             return true;
+        }
+    }
+
+    /// <inheritdoc />
+    public int GetMinutesUntilExpiry(string token)
+    {
+        try
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var jsonToken = tokenHandler.ReadJwtToken(token);
+
+            // ValidTo is always in UTC
+            var expiry = jsonToken.ValidTo;
+            var remaining = expiry - DateTime.UtcNow;
+
+            return (int)remaining.TotalMinutes;
+        }
+        catch
+        {
+            // If parsing fails, treat as expired
+            return -1;
         }
     }
 }

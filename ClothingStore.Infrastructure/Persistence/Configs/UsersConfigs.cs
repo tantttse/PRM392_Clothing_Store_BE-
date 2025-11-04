@@ -103,7 +103,11 @@ namespace ClothingStore.Infrastructure.Persistence.Configurations
                      builder.HasMany(u => u.Carts)
                             .WithOne(c => c.User)
                             .HasForeignKey(c => c.UserId);
-
+                     
+                     builder.HasMany(u => u.ExternalIdentities)
+                            .WithOne(e => e.User)
+                            .HasForeignKey(e => e.UserId)
+                            .OnDelete(DeleteBehavior.Cascade);
               }
        }
 }

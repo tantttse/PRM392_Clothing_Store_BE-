@@ -45,3 +45,9 @@ public class RegisterRequestDto
     [DefaultValue("some where in vietnam of course lmao")]
     public string Address { get; set; } = default!;
 }
+
+public class GoogleLoginRequestDto
+{
+    [DefaultValue("server id token")]
+    public string IdToken { get; set; } = default!;
+}

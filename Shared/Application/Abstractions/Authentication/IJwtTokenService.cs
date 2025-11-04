@@ -38,4 +38,19 @@ public interface IJwtTokenService
     /// <param name="token">The JWT token to inspect.</param>
     /// <returns>True if expired or invalid; false if still valid.</returns>
     bool IsTokenExpired(string token);
+
+    /// <summary>
+    /// Gets the number of minutes until the token expires.
+    /// Returns a negative value if the token is already expired.
+    /// </summary>
+    /// <param name="token">The JWT token to inspect.</param>
+    /// <returns>Minutes until expiry (negative if expired).</returns>
+    int GetMinutesUntilExpiry(string token);
+    
+    /// <summary>
+    /// Gets the configured expiry duration (in minutes) for access tokens.
+    /// </summary>
+    int ExpiryMinutes { get; }
+
+    int RefreshTokenExpiryDays { get; }
 }

@@ -2,7 +2,6 @@ using System.Text;
 using Shared.Application.Abstractions.Authentication;
 using ClothingStore.Application.Abstractions.UnitOfWork;
 using ClothingStore.Domain.Repositories;
-using ClothingStore.Infrastructure.Common;
 using ClothingStore.Infrastructure.Persistence.Contexts;
 using ClothingStore.Infrastructure.Repositories;
 using Shared.Infrastructure.Authentication;
@@ -23,27 +22,30 @@ using Shared.Domain.Common.Exceptions.Handler;
 using Application.Abstractions.Payment;
 using Infrastructure.Payments;
 using Shared.Infrastructure.Configs.Payment;
-// using SharedLibrary.Utils;
+using ClothingStore.Infrastructure.Common;
+using ClothingStore.Application;
+using Shared;
+using Shared.Application.Abstractions.Repositories;
 
-namespace Shared.Infrastructure
+namespace ClothingStore.Infrastructure
 {
     public static class DependencyInjection
     {
         public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
         {
-            // UPDATED: Changed from direct Configure to ConfigureOptions for strongly-typed binding
-            // OLD: services.Configure<ErrorHandlingConfigs>(configuration.GetSection("ErrorHandling"));
+            var infrasAssembly = typeof(InfrastructureAssemblyReference).Assembly;
+            var appliAssembly = typeof(ApplicationAssemblyReference).Assembly;
+            var sharedAssembly = typeof(SharedAssemblyReference).Assembly;
+
+            // Configuration options
             services.ConfigureOptions<ErrorHandlingConfigSetup>();
             services.ConfigureOptions<JwtConfigSetup>();
             services.ConfigureOptions<VnPayConfigSetup>();
+            services.ConfigureOptions<GoogleAuthConfigSetup>();
 
-            // REMOVED: Direct configuration binding - now handled by ConfigureOptions above
-            // OLD CODE:
-            // services.Configure<JwtConfigs>(configuration.GetSection("JwtConfigs"));
-            // var jwtSettings = configuration.GetSection("JwtConfigs").Get<JwtConfigs>();
-            // var key = Encoding.ASCII.GetBytes(jwtSettings.Secret);
+            services.AddSingleton<IValidateOptions<GoogleAuthConfigs>, GoogleAuthConfigValidation>();
 
-            // UPDATED: JWT Authentication - Split into two parts for proper DI injection
+            // JWT Authentication
             services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -56,7 +58,6 @@ namespace Shared.Infrastructure
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
                     ValidateIssuerSigningKey = true,
-                    // REMOVED: IssuerSigningKey, ValidIssuer, ValidAudience - now set via AddOptions below
                     ValidateIssuer = true,
                     ValidateAudience = true,
                     ValidateLifetime = true,
@@ -64,13 +65,12 @@ namespace Shared.Infrastructure
                 };
             });
 
-            // ADDED: Configure JWT options after authentication is added (proper DI pattern)
-            // This allows injecting IOptions<JwtConfigs> to configure JWT Bearer options
+            // Configure JWT options after authentication is added
             services.AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme)
                 .Configure<IOptions<JwtConfigs>>((options, jwtConfigs) =>
                 {
                     var jwtSettings = jwtConfigs.Value;
-                    var key = Encoding.UTF8.GetBytes(jwtSettings.Secret); // UPDATED: Changed from ASCII to UTF8
+                    var key = Encoding.UTF8.GetBytes(jwtSettings.Secret);
 
                     options.TokenValidationParameters.IssuerSigningKey = new SymmetricSecurityKey(key);
                     options.TokenValidationParameters.ValidIssuer = jwtSettings.Issuer;
@@ -79,7 +79,7 @@ namespace Shared.Infrastructure
 
             // EF Core + interceptors
             services.AddScoped<ISaveChangesInterceptor, AuditableEntityInterceptor>();
-            services.AddScoped<ISaveChangesInterceptor, DispatchDomainEventInterceptor>(); // MOVED: From line 82 to here for better organization
+            services.AddScoped<ISaveChangesInterceptor, DispatchDomainEventInterceptor>();
             services.AddDbContext<UsersDbContext>((sp, options) =>
             {
                 options.UseNpgsql(configuration.GetConnectionString("DefaultConnection"));
@@ -91,23 +91,60 @@ namespace Shared.Infrastructure
                 }
             });
 
-            // Application services
+            // OPTION 1: Register all repositories by marker interface (RECOMMENDED)
+            // Requires: Create IRepository marker interface in Domain layer
+            services.Scan(scan => scan
+                .FromAssemblies(infrasAssembly)
+                .AddClasses(classes => classes
+                    .AssignableTo(typeof(IRepository<>))) // Generic repository interface
+                .AsImplementedInterfaces()
+                .WithScopedLifetime());
+
+            // OPTION 2: Register by naming convention
+            // services.Scan(scan => scan
+            //     .FromAssemblies(infrasAssembly)
+            //     .AddClasses(classes => classes
+            //         .Where(type => type.Name.EndsWith("Repository") && !type.IsAbstract))
+            //     .AsImplementedInterfaces()
+            //     .WithScopedLifetime());
+
+            // OPTION 3: Register by base class
+            // Requires: Create RepositoryBase<T> base class
+            // services.Scan(scan => scan
+            //     .FromAssemblies(infrasAssembly)
+            //     .AddClasses(classes => classes
+            //         .AssignableTo(typeof(RepositoryBase<>)))
+            //     .AsImplementedInterfaces()
+            //     .WithScopedLifetime());
+
+            // OPTION 4: Register by specific namespace pattern
+            // services.Scan(scan => scan
+            //     .FromAssemblies(infrasAssembly)
+            //     .AddClasses(classes => classes
+            //         .InNamespaces("ClothingStore.Infrastructure.Repositories"))
+            //     .AsImplementedInterfaces()
+            //     .WithScopedLifetime());
+
+            // Scrutor: Auto-register all IDbContextUnitOfWork implementations
+            services.Scan(scan => scan
+                .FromAssemblies(infrasAssembly, sharedAssembly)
+                .AddClasses(classes => classes
+                    .AssignableTo<IDbContextUnitOfWork>()
+                    .Where(type => !type.IsAbstract))
+                .AsImplementedInterfaces()
+                .WithScopedLifetime());
+
+            // Manually register CompositeUnitOfWork (to avoid circular dependency)
+            services.AddScoped<ICompositeUnitOfWork, CompositeUnitOfWork>();
+
+            // Application services (non-repository/UoW services)
             services.AddScoped<IJwtTokenService, JwtTokenService>();
             services.AddScoped<IVnPayService, VnPayService>();
             services.AddScoped<IPasswordHasher, PasswordHasher>();
-            services.AddScoped<IUserUnitOfWork, UserUnitOfWork>();
-            services.AddScoped<IUserRepository, UserRepository>();
-            services.AddScoped<IProductRepository, ProductRepository>();
-            services.AddScoped<ICategoryRepository, CategoryRepository>();
-            services.AddScoped<ICartRepository, CartRepository>();
-            services.AddScoped<IOrderRepository, OrderRepository>();
-            services.AddScoped<ISaveChangesUnitOfWork, UserUnitOfWork>();
-            // REMOVED: services.AddScoped<ISaveChangesInterceptor, DispatchDomainEventInterceptor>(); - Moved to line 69
-            services.AddScoped<ICompositeUnitOfWork, CompositeUnitOfWork>();
             services.AddScoped<ICurrentUserService, CurrentUserService>();
 
             // AutoMapper
-            services.AddAutoMapper(typeof(ClothingStore.Application.Mappings.UserProfile).Assembly);
+            services.AddAutoMapper(appliAssembly);
 
             // Controllers + model binders
             services.AddHttpContextAccessor();
@@ -118,15 +155,7 @@ namespace Shared.Infrastructure
 
             // Exception handling
             services.AddExceptionHandler<CustomExceptionHandler>();
-            services.AddProblemDetails(); // optional, for ProblemDetails support
-
-            // REMOVED: Auto migration code - Should be handled separately
-            // OLD CODE:
-            // var provider = services.BuildServiceProvider().GetRequiredService<ILoggerFactory>();
-            // var logger = provider.CreateLogger<AutoMigration>();
-            // var migrator = new AutoMigration(logger);
-            // migrator.GenerateMigration();
-            // migrator.ApplyMigration();
+            services.AddProblemDetails();
 
             return services;
         }

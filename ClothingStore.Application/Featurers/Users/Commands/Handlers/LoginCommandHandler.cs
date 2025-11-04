@@ -67,7 +67,7 @@ namespace ClothingStore.Application.Features.User.Commands.Login
             {
                 // Generate new refresh token
                 refreshToken = _jwtTokenService.GenerateRefreshToken();
-                refreshExpiry = DateTime.UtcNow.AddDays(7);
+                refreshExpiry = DateTime.UtcNow.AddDays(_jwtTokenService.RefreshTokenExpiryDays);
                 user.SetRefreshToken(refreshToken, refreshExpiry);
                 _userRepository.Update(user, cancellationToken);
             }
@@ -75,7 +75,7 @@ namespace ClothingStore.Application.Features.User.Commands.Login
             var response = new LoginResponseDto(
                 AccessToken: accessToken,
                 RefreshToken: refreshToken,
-                ExpiresAt: DateTime.UtcNow.AddMinutes(60),
+                ExpiresAt: DateTime.UtcNow.AddMinutes(_jwtTokenService.ExpiryMinutes),
                 User: new UserInfoDto(user.Id, user.FirstName ?? "", user.UserName, user.Email, roles)
             );
 

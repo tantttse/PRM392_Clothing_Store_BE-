@@ -3,6 +3,7 @@ using System;
 using ClothingStore.Infrastructure.Persistence.Contexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ClothingStore.Infrastructure.Migrations
 {
     [DbContext(typeof(UsersDbContext))]
-    partial class UsersDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251103153251_externalentityupdate1")]
+    partial class externalentityupdate1
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -586,7 +589,7 @@ namespace ClothingStore.Infrastructure.Migrations
             modelBuilder.Entity("ClothingStore.Domain.Entities.ExternalIdentity", b =>
                 {
                     b.HasOne("ClothingStore.Domain.Entities.Users", "User")
-                        .WithMany("ExternalIdentities")
+                        .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -632,8 +635,6 @@ namespace ClothingStore.Infrastructure.Migrations
             modelBuilder.Entity("ClothingStore.Domain.Entities.Users", b =>
                 {
                     b.Navigation("Carts");
-
-                    b.Navigation("ExternalIdentities");
                 });
 #pragma warning restore 612, 618
         }
